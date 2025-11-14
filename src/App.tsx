@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import CareCoordinatorDashboard from './pages/CareCoordinatorDashboard';
 import ProviderDashboard from './pages/ProviderDashboard';
@@ -8,7 +8,7 @@ import './App.css';
 function App() {
   return (
     <div className="app">
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/coordinator" element={<CareCoordinatorDashboard />} />
@@ -16,7 +16,7 @@ function App() {
           <Route path="/patient" element={<PatientView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </div>
   );
 }
