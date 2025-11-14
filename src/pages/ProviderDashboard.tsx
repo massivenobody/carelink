@@ -41,7 +41,7 @@ const ProviderDashboard = () => {
   const weekDates = useMemo(() => calculateWeekDates(), []);
 
   // Default to Monday of current week for daily view
-  const [selectedDate, setSelectedDate] = useState(() => {
+  const [selectedDate, _] = useState(() => {
     const dates = calculateWeekDates();
     return dates[0];
   });

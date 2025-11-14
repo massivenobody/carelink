@@ -5,7 +5,7 @@ import './PatientView.css';
 const PatientView = () => {
   const navigate = useNavigate();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [_, setShowRescheduleModal] = useState(false);
 
   // Mock appointment data
   const appointment = {
