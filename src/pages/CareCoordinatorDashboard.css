@@ -554,3 +554,301 @@
   }
 }
 
+/* Call icon button in table */
+.call-icon-btn {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.call-icon-btn:hover {
+  background: var(--color-primary-dark);
+  transform: scale(1.1);
+}
+
+.call-icon-btn:active {
+  transform: scale(0.95);
+}
+
+/* Call UI styles */
+.call-ui-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: var(--spacing-lg);
+}
+
+.call-ui-content {
+  background: var(--color-background);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  max-width: 500px;
+  width: 100%;
+  padding: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+.call-ui-header {
+  text-align: center;
+  width: 100%;
+}
+
+.call-ui-patient-info h2 {
+  font-family: var(--font-secondary);
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text-primary);
+}
+
+.call-ui-phone {
+  font-size: 1.25rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+.call-ui-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.call-status-indicator {
+  font-size: 1rem;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.call-status-indicator.calling {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.call-status-indicator.in-call {
+  background: var(--color-secondary-light);
+  color: var(--color-secondary-dark);
+}
+
+.call-status-indicator.on-hold {
+  background: #FFF4E6;
+  color: #E67E22;
+}
+
+.call-timer {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  color: var(--color-text-primary);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.call-ui-controls {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.call-control-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.call-control-btn:hover {
+  transform: scale(1.1);
+  background: var(--color-primary-light);
+}
+
+.call-control-btn:active {
+  transform: scale(0.95);
+}
+
+.call-control-btn.mute-btn {
+  background: var(--color-surface);
+}
+
+.call-control-btn.mute-btn.active {
+  background: var(--color-error);
+  color: white;
+}
+
+.call-control-btn.hold-btn {
+  background: var(--color-surface);
+}
+
+.call-control-btn.hold-btn.active {
+  background: var(--color-warning);
+  color: white;
+}
+
+.call-control-btn.hold-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.call-control-btn.keypad-btn {
+  background: var(--color-surface);
+}
+
+.call-control-btn.keypad-btn.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.call-control-btn.hangup-btn {
+  background: var(--color-error);
+  color: white;
+}
+
+.call-control-btn.hangup-btn:hover {
+  background: #E53E3E;
+}
+
+/* Keypad styles */
+.call-keypad {
+  width: 100%;
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.keypad-display {
+  margin-bottom: var(--spacing-md);
+}
+
+.keypad-input {
+  width: 100%;
+  padding: var(--spacing-md);
+  font-size: 1.5rem;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.keypad-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.keypad-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+}
+
+.keypad-action-btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.keypad-action-btn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.keypad-button {
+  aspect-ratio: 1;
+  font-size: 1.5rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.keypad-button:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  transform: scale(1.05);
+}
+
+.keypad-button:active {
+  transform: scale(0.95);
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Form textarea */
+.form-textarea {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-primary);
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  background: var(--color-background);
+  transition: border-color 0.2s ease;
+  resize: vertical;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+

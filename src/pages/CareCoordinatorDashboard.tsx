@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Mic, MicOff, Pause, Play, PhoneOff, Grid3x3 } from 'lucide-react';
 import './CareCoordinatorDashboard.css';
 
 interface Patient {
@@ -10,6 +11,7 @@ interface Patient {
   assignedPCP: string;
   appointmentDate: string;
   confirmationStatus: 'Pending' | 'Pending Provider Confirmation' | 'Confirmed' | 'Reschedule Requested' | 'Completed';
+  phone?: string;
 }
 
 interface Notification {
@@ -46,14 +48,17 @@ const CareCoordinatorDashboard = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [showCallModal, setShowCallModal] = useState(false);
+  const [showCallUI, setShowCallUI] = useState(false);
+  const [showDispositionModal, setShowDispositionModal] = useState(false);
   const [callDisposition, setCallDisposition] = useState<string>('');
+  const [dispositionNotes, setDispositionNotes] = useState<string>('');
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
     { date: '', time: '' },
     { date: '', time: '' },
     { date: '', time: '' }
   ]);
 
-  // Mock data - Open cases (for Home tab)
+  // Mock data - Open cases (for Home tab) - one per status to showcase all statuses
   const [openCases, setOpenCases] = useState<Patient[]>([
     {
       id: '1',
@@ -62,38 +67,52 @@ const CareCoordinatorDashboard = () => {
       status: 'Pending',
       assignedPCP: 'Dr. Michael Chen',
       appointmentDate: '2024-02-15',
-      confirmationStatus: 'Pending'
+      confirmationStatus: 'Pending',
+      phone: '(555) 111-2222'
     },
     {
       id: '2',
       name: 'Robert Martinez',
       careGap: 'Diabetes Check',
-      status: 'Confirmed',
+      status: 'Scheduled',
       assignedPCP: 'Dr. Emily Rodriguez',
-      appointmentDate: '2024-02-10',
-      confirmationStatus: 'Confirmed'
+      appointmentDate: '2024-02-20',
+      confirmationStatus: 'Pending Provider Confirmation',
+      phone: '(555) 222-3333'
     },
     {
       id: '3',
       name: 'Jennifer Lee',
       careGap: 'Mammogram',
-      status: 'Rescheduled',
+      status: 'Confirmed',
       assignedPCP: 'Dr. Michael Chen',
-      appointmentDate: '2024-02-20',
-      confirmationStatus: 'Reschedule Requested'
+      appointmentDate: '2024-02-25',
+      confirmationStatus: 'Confirmed',
+      phone: '(555) 333-4444'
     },
     {
       id: '4',
       name: 'David Thompson',
       careGap: 'Cardiac Screening',
-      status: 'Pending',
+      status: 'Rescheduled',
       assignedPCP: 'Dr. Emily Rodriguez',
-      appointmentDate: '2024-02-12',
-      confirmationStatus: 'Pending'
+      appointmentDate: '2024-03-01',
+      confirmationStatus: 'Reschedule Requested',
+      phone: '(555) 444-5555'
+    },
+    {
+      id: '5',
+      name: 'Maria Garcia',
+      careGap: 'Colonoscopy',
+      status: 'Completed',
+      assignedPCP: 'Dr. James Wilson',
+      appointmentDate: '2024-01-20',
+      confirmationStatus: 'Completed',
+      phone: '(555) 555-6666'
     }
   ]);
 
-  // Mock data - All patients assigned to this coordinator
+  // Mock data - All patients assigned to this coordinator - showcasing all statuses
   const [allPatients, setAllPatients] = useState<Patient[]>([
     {
       id: '1',
@@ -102,92 +121,53 @@ const CareCoordinatorDashboard = () => {
       status: 'Pending',
       assignedPCP: 'Dr. Michael Chen',
       appointmentDate: '2024-02-15',
-      confirmationStatus: 'Pending'
+      confirmationStatus: 'Pending',
+      phone: '(555) 111-2222'
     },
     {
       id: '2',
       name: 'Robert Martinez',
       careGap: 'Diabetes Check',
-      status: 'Confirmed',
+      status: 'Scheduled',
       assignedPCP: 'Dr. Emily Rodriguez',
-      appointmentDate: '2024-02-10',
-      confirmationStatus: 'Confirmed'
+      appointmentDate: '2024-02-20',
+      confirmationStatus: 'Pending Provider Confirmation',
+      phone: '(555) 222-3333'
     },
     {
       id: '3',
       name: 'Jennifer Lee',
       careGap: 'Mammogram',
-      status: 'Rescheduled',
+      status: 'Confirmed',
       assignedPCP: 'Dr. Michael Chen',
-      appointmentDate: '2024-02-20',
-      confirmationStatus: 'Reschedule Requested'
+      appointmentDate: '2024-02-25',
+      confirmationStatus: 'Confirmed',
+      phone: '(555) 333-4444'
     },
     {
       id: '4',
       name: 'David Thompson',
       careGap: 'Cardiac Screening',
-      status: 'Pending',
+      status: 'Rescheduled',
       assignedPCP: 'Dr. Emily Rodriguez',
-      appointmentDate: '2024-02-12',
-      confirmationStatus: 'Pending'
+      appointmentDate: '2024-03-01',
+      confirmationStatus: 'Reschedule Requested',
+      phone: '(555) 444-5555'
     },
     {
       id: '5',
       name: 'Maria Garcia',
-      careGap: 'Annual Physical',
-      status: 'Completed',
-      assignedPCP: 'Dr. Michael Chen',
-      appointmentDate: '2024-01-20',
-      confirmationStatus: 'Completed'
-    },
-    {
-      id: '6',
-      name: 'John Smith',
       careGap: 'Colonoscopy',
       status: 'Completed',
       assignedPCP: 'Dr. James Wilson',
-      appointmentDate: '2024-01-15',
-      confirmationStatus: 'Completed'
-    },
-    {
-      id: '7',
-      name: 'Patricia Brown',
-      careGap: 'Diabetes Check',
-      status: 'Completed',
-      assignedPCP: 'Dr. Emily Rodriguez',
-      appointmentDate: '2024-01-10',
-      confirmationStatus: 'Completed'
-    },
-    {
-      id: '8',
-      name: 'Thomas Wilson',
-      careGap: 'Cardiac Screening',
-      status: 'Completed',
-      assignedPCP: 'Dr. James Wilson',
-      appointmentDate: '2024-01-05',
-      confirmationStatus: 'Completed'
-    },
-    {
-      id: '9',
-      name: 'Linda Davis',
-      careGap: 'Mammogram',
-      status: 'Completed',
-      assignedPCP: 'Dr. Sarah Patel',
-      appointmentDate: '2023-12-28',
-      confirmationStatus: 'Completed'
-    },
-    {
-      id: '10',
-      name: 'Christopher Moore',
-      careGap: 'Annual Physical',
-      status: 'Completed',
-      assignedPCP: 'Dr. Michael Chen',
-      appointmentDate: '2023-12-20',
-      confirmationStatus: 'Completed'
+      appointmentDate: '2024-01-20',
+      confirmationStatus: 'Completed',
+      phone: '(555) 555-6666'
     }
   ]);
 
-  const notifications: Notification[] = [
+  // Notifications state - make it stateful so we can update it
+  const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: '1',
       type: 'confirmation',
@@ -212,7 +192,10 @@ const CareCoordinatorDashboard = () => {
       patientName: 'David Thompson',
       patientId: '4'
     }
-  ];
+  ]);
+
+  // Track contact attempts to know when first contact is made
+  const [contactAttempts, setContactAttempts] = useState<Set<string>>(new Set());
 
   const providers: Provider[] = [
     {
@@ -310,6 +293,96 @@ const CareCoordinatorDashboard = () => {
     setTimeSlots([{ date: '', time: '' }, { date: '', time: '' }, { date: '', time: '' }]);
   };
 
+  const handleCallClick = (e: React.MouseEvent, patient: Patient) => {
+    e.stopPropagation(); // Prevent row click
+    setSelectedPatient(patient);
+    setShowCallUI(true);
+  };
+
+  const handleHangUp = () => {
+    setShowCallUI(false);
+    // Open disposition modal immediately after hanging up
+    setShowDispositionModal(true);
+  };
+
+  const handleDispositionSave = () => {
+    if (!selectedPatient || !callDisposition) return;
+
+    // Mark that contact attempt was made for this patient
+    const isFirstContact = !contactAttempts.has(selectedPatient.id);
+    if (isFirstContact) {
+      setContactAttempts(prev => new Set(prev).add(selectedPatient.id));
+      
+      // Dismiss "new patient assigned" notification for this patient
+      setNotifications(prev => 
+        prev.filter(n => !(n.type === 'new' && n.patientId === selectedPatient.id))
+      );
+    }
+
+    // Update patient status based on disposition
+    let newStatus: Patient['status'] = selectedPatient.status;
+    let newConfirmationStatus: Patient['confirmationStatus'] = selectedPatient.confirmationStatus;
+    let newAppointmentDate = selectedPatient.appointmentDate;
+
+    switch (callDisposition) {
+      case 'scheduled':
+        newStatus = 'Scheduled';
+        newConfirmationStatus = 'Pending Provider Confirmation';
+        if (timeSlots[0].date) {
+          newAppointmentDate = timeSlots[0].date;
+        }
+        break;
+      case 'no-answer':
+      case 'voicemail':
+      case 'wrong-number':
+        newStatus = 'Pending';
+        newConfirmationStatus = 'Pending';
+        break;
+      case 'insurance-expired':
+      case 'patient-deceased':
+      case 'changed-pcp':
+        newStatus = 'Pending';
+        newConfirmationStatus = 'Pending';
+        break;
+    }
+
+    const updatedPatient: Patient = {
+      ...selectedPatient,
+      status: newStatus,
+      confirmationStatus: newConfirmationStatus,
+      appointmentDate: newAppointmentDate
+    };
+
+    // Update open cases
+    setOpenCases(prev => {
+      const index = prev.findIndex(p => p.id === selectedPatient.id);
+      if (index !== -1) {
+        const updated = [...prev];
+        updated[index] = updatedPatient;
+        return updated;
+      }
+      return prev;
+    });
+
+    // Update all patients
+    setAllPatients(prev => {
+      const index = prev.findIndex(p => p.id === selectedPatient.id);
+      if (index !== -1) {
+        const updated = [...prev];
+        updated[index] = updatedPatient;
+        return updated;
+      }
+      return prev;
+    });
+
+    // Close disposition modal and reset
+    setShowDispositionModal(false);
+    setSelectedPatient(null);
+    setCallDisposition('');
+    setDispositionNotes('');
+    setTimeSlots([{ date: '', time: '' }, { date: '', time: '' }, { date: '', time: '' }]);
+  };
+
   const handleNotificationClick = (notification: Notification) => {
     if (notification.type === 'new' && notification.patientId) {
       const patient = allPatients.find(p => p.id === notification.patientId);
@@ -325,6 +398,17 @@ const CareCoordinatorDashboard = () => {
 
   const handleCallAttemptSubmit = () => {
     if (!selectedPatient || !callDisposition) return;
+
+    // Mark that contact attempt was made for this patient
+    const isFirstContact = !contactAttempts.has(selectedPatient.id);
+    if (isFirstContact) {
+      setContactAttempts(prev => new Set(prev).add(selectedPatient.id));
+      
+      // Dismiss "new patient assigned" notification for this patient
+      setNotifications(prev => 
+        prev.filter(n => !(n.type === 'new' && n.patientId === selectedPatient.id))
+      );
+    }
 
     // Update patient status based on disposition
     let newStatus: Patient['status'] = selectedPatient.status;
@@ -465,6 +549,7 @@ const CareCoordinatorDashboard = () => {
                         <th>Assigned PCP</th>
                         <th>Appointment Date</th>
                         <th>Confirmation Status</th>
+                        <th>Contact</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -489,6 +574,18 @@ const CareCoordinatorDashboard = () => {
                             <span className={`badge ${getStatusBadgeClass(patient.confirmationStatus)}`}>
                               {patient.confirmationStatus}
                             </span>
+                          </td>
+                          <td>
+                            <button
+                              className="call-icon-btn"
+                              onClick={(e) => handleCallClick(e, patient)}
+                              aria-label={`Call ${patient.name}`}
+                              title={`Call ${patient.name}`}
+                            >
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                              </svg>
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -679,6 +776,27 @@ const CareCoordinatorDashboard = () => {
           onSubmit={handleCallAttemptSubmit}
         />
       )}
+
+      {showCallUI && selectedPatient && (
+        <CallUI
+          patient={selectedPatient}
+          onHangUp={handleHangUp}
+        />
+      )}
+
+      {showDispositionModal && selectedPatient && (
+        <DispositionModal
+          patient={selectedPatient}
+          provider={getProviderByName(selectedPatient.assignedPCP)}
+          callDisposition={callDisposition}
+          setCallDisposition={setCallDisposition}
+          dispositionNotes={dispositionNotes}
+          setDispositionNotes={setDispositionNotes}
+          timeSlots={timeSlots}
+          updateTimeSlot={updateTimeSlot}
+          onSave={handleDispositionSave}
+        />
+      )}
     </div>
   );
 };
@@ -805,6 +923,327 @@ const CallAttemptModal = ({
             disabled={!canSubmit}
           >
             Log Call Attempt
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface CallUIProps {
+  patient: Patient;
+  onHangUp: () => void;
+}
+
+const CallUI = ({ patient, onHangUp }: CallUIProps) => {
+  const [callState, setCallState] = useState<'calling' | 'in-call' | 'on-hold'>('calling');
+  const [callDuration, setCallDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isOnHold, setIsOnHold] = useState(false);
+  const [showKeypad, setShowKeypad] = useState(false);
+  const [keypadInput, setKeypadInput] = useState('');
+
+  // Simulate call progression
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCallState('in-call');
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Timer for call duration (only when in-call, not on hold)
+  useEffect(() => {
+    if (callState === 'in-call') {
+      const interval = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [callState]);
+
+  const handleHoldToggle = () => {
+    const newHoldState = !isOnHold;
+    setIsOnHold(newHoldState);
+    // Update call state based on hold status (only if call is connected)
+    if (callState === 'in-call' || callState === 'on-hold') {
+      setCallState(newHoldState ? 'on-hold' : 'in-call');
+    }
+  };
+
+  const handleKeypadToggle = () => {
+    setShowKeypad(!showKeypad);
+  };
+
+  const handleKeypadButton = (value: string) => {
+    setKeypadInput(prev => prev + value);
+  };
+
+  const handleKeypadBackspace = () => {
+    setKeypadInput(prev => prev.slice(0, -1));
+  };
+
+  const handleKeypadClear = () => {
+    setKeypadInput('');
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getStatusText = () => {
+    if (callState === 'calling') return 'Calling...';
+    if (callState === 'on-hold') return 'On hold';
+    return 'In call';
+  };
+
+  return (
+    <div className="call-ui-overlay">
+      <div className="call-ui-content">
+        <div className="call-ui-header">
+          <div className="call-ui-patient-info">
+            <h2>{patient.name}</h2>
+            <p className="call-ui-phone">{patient.phone || 'No phone number'}</p>
+            <div className="call-ui-status">
+              <span className={`call-status-indicator ${callState}`}>
+                {getStatusText()}
+              </span>
+              {(callState === 'in-call' || callState === 'on-hold') && (
+                <span className="call-timer">{formatTime(callDuration)}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="call-ui-controls">
+          <button
+            className={`call-control-btn mute-btn ${isMuted ? 'active' : ''}`}
+            onClick={() => setIsMuted(!isMuted)}
+            aria-label={isMuted ? 'Unmute' : 'Mute'}
+            title={isMuted ? 'Unmute' : 'Mute'}
+          >
+            {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
+          </button>
+
+          <button
+            className={`call-control-btn hold-btn ${isOnHold ? 'active' : ''}`}
+            onClick={handleHoldToggle}
+            aria-label={isOnHold ? 'Resume' : 'Hold'}
+            title={isOnHold ? 'Resume' : 'Hold'}
+            disabled={callState === 'calling'}
+          >
+            {isOnHold ? <Play size={24} /> : <Pause size={24} />}
+          </button>
+
+          <button
+            className={`call-control-btn keypad-btn ${showKeypad ? 'active' : ''}`}
+            onClick={handleKeypadToggle}
+            aria-label={showKeypad ? 'Hide Keypad' : 'Show Keypad'}
+            title={showKeypad ? 'Hide Keypad' : 'Show Keypad'}
+          >
+            <Grid3x3 size={24} />
+          </button>
+
+          <button
+            className="call-control-btn hangup-btn"
+            onClick={onHangUp}
+            aria-label="Hang up"
+            title="Hang up"
+          >
+            <PhoneOff size={24} />
+          </button>
+        </div>
+
+        {showKeypad && (
+          <div className="call-keypad">
+            <div className="keypad-display">
+              <input
+                type="text"
+                className="keypad-input"
+                value={keypadInput}
+                readOnly
+                placeholder="Enter number"
+              />
+              <div className="keypad-actions">
+                <button
+                  className="keypad-action-btn"
+                  onClick={handleKeypadBackspace}
+                  aria-label="Backspace"
+                  title="Backspace"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+                    <line x1="18" y1="9" x2="12" y2="15"></line>
+                    <line x1="12" y1="9" x2="18" y2="15"></line>
+                  </svg>
+                </button>
+                <button
+                  className="keypad-action-btn"
+                  onClick={handleKeypadClear}
+                  aria-label="Clear"
+                  title="Clear"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div className="keypad-grid">
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((digit) => (
+                <button
+                  key={digit}
+                  className="keypad-button"
+                  onClick={() => handleKeypadButton(digit)}
+                  aria-label={`Keypad ${digit}`}
+                >
+                  {digit}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface DispositionModalProps {
+  patient: Patient;
+  provider: Provider | undefined;
+  callDisposition: string;
+  setCallDisposition: (value: string) => void;
+  dispositionNotes: string;
+  setDispositionNotes: (value: string) => void;
+  timeSlots: TimeSlot[];
+  updateTimeSlot: (index: number, field: 'date' | 'time', value: string) => void;
+  onSave: () => void;
+}
+
+const DispositionModal = ({
+  patient,
+  provider,
+  callDisposition,
+  setCallDisposition,
+  dispositionNotes,
+  setDispositionNotes,
+  timeSlots,
+  updateTimeSlot,
+  onSave
+}: DispositionModalProps) => {
+  const isScheduled = callDisposition === 'scheduled';
+  const isFirstSlotRequired = timeSlots[0].date && timeSlots[0].time;
+  const canSave = callDisposition && (!isScheduled || isFirstSlotRequired);
+
+  // Prevent closing by clicking overlay - disposition is mandatory
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={handleOverlayClick}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Call Disposition</h2>
+        </div>
+
+        <div className="modal-body">
+          <div className="patient-info-section">
+            <h3>{patient.name}</h3>
+            <p className="patient-detail">Phone: {patient.phone || 'No phone number'}</p>
+            <p className="patient-detail">Care Gap: {patient.careGap}</p>
+            <p className="patient-detail">Assigned PCP: {patient.assignedPCP}</p>
+          </div>
+
+          <div className="form-section">
+            <label htmlFor="disposition" className="form-label">
+              Call Outcome <span className="required">*</span>
+            </label>
+            <select
+              id="disposition"
+              className="form-select"
+              value={callDisposition}
+              onChange={(e) => setCallDisposition(e.target.value)}
+            >
+              <option value="">Select outcome...</option>
+              <option value="no-answer">No Answer</option>
+              <option value="voicemail">Left Voicemail</option>
+              <option value="wrong-number">Wrong Number</option>
+              <option value="scheduled">Scheduled Appointment</option>
+              <option value="insurance-expired">Insurance Expired</option>
+              <option value="patient-deceased">Patient Deceased</option>
+              <option value="changed-pcp">Changed PCP</option>
+            </select>
+          </div>
+
+          <div className="form-section">
+            <label htmlFor="notes" className="form-label">
+              Notes (Optional)
+            </label>
+            <textarea
+              id="notes"
+              className="form-textarea"
+              value={dispositionNotes}
+              onChange={(e) => setDispositionNotes(e.target.value)}
+              rows={4}
+              placeholder="Add any additional notes about the call..."
+            />
+          </div>
+
+          {isScheduled && provider && (
+            <div className="provider-schedule-section">
+              <h4>Provider Information</h4>
+              <div className="provider-info-card">
+                <p><strong>{provider.name}</strong></p>
+                <p>{provider.specialty}</p>
+                <p>{provider.location}</p>
+                {provider.schedule && (
+                  <div className="schedule-info">
+                    <p><strong>Available Days:</strong> {provider.schedule.days.join(', ')}</p>
+                    <p><strong>Hours:</strong> {provider.schedule.hours}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="time-slots-section">
+                <h4>Preferred Time Slots</h4>
+                <div className="time-slots-list">
+                  {timeSlots.map((slot, index) => (
+                    <div key={index} className="time-slot-input">
+                      <label className="time-slot-label">
+                        {index === 0 ? 'Time Slot 1 (Required)' : `Time Slot ${index + 1} (Optional)`}
+                      </label>
+                      <div className="time-slot-fields">
+                        <input
+                          type="date"
+                          className="form-input"
+                          value={slot.date}
+                          onChange={(e) => updateTimeSlot(index, 'date', e.target.value)}
+                          required={index === 0}
+                        />
+                        <input
+                          type="time"
+                          className="form-input"
+                          value={slot.time}
+                          onChange={(e) => updateTimeSlot(index, 'time', e.target.value)}
+                          required={index === 0}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="modal-footer">
+          <button 
+            className="btn btn-primary" 
+            onClick={onSave}
+            disabled={!canSave}
+          >
+            Save Disposition
           </button>
         </div>
       </div>
